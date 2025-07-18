@@ -33,12 +33,6 @@ class BlogController {
                         },
                     },
                 ]);
-                for (const blog of blogsWithLikes) {
-                    blog.isLiked = await LikeModal.exists({
-                        userid: loggedInUserId,
-                        blogid: blog._id,
-                    });
-                }
                 res.status(201).json({
                     success: true,
                     data: blogsWithLikes,
@@ -77,6 +71,50 @@ class BlogController {
         }
     }
 
+    static singleBlog = async (req, res) => {
+        const { blogid } = req.body;
+        const { _id: loggedInUserId } = req.user;
+
+        try {
+            const blogWithLikes = await blogModel.aggregate([
+                {
+                    $match: { _id: blogid },
+                },
+                {
+                    $lookup: {
+                        from: "likes",
+                        localField: "_id",
+                        foreignField: "blogid",
+                        as: "likes",
+                    },
+                },
+                {
+                    $addFields: {
+                        totalLikes: { $size: "$likes" },
+                    },
+                },
+            ]);
+
+            if (blogWithLikes.length === 0) {
+                return res.status(404).json({ success: false, message: "Blog not found" });
+            }
+
+            const blog = blogWithLikes[0];
+            blog.isLiked = await LikeModal.exists({
+                userid: loggedInUserId,
+                blogid: blog._id,
+            });
+
+            res.status(200).json({
+                success: true,
+                data: blog,
+                message: "Blog fetched successfully",
+            });
+        } catch (error) {
+            res.status(400).json({ success: false, message: "Error fetching blog" });
+        }
+    };
+
     static updateBlog = async (req, res) => {
         const { blogid, bloghead, blog } = req.body;
         const { _id: loggedInUserId } = req.user;
@@ -110,12 +148,6 @@ class BlogController {
                 },
             ]);
 
-            for (const blog of blogsWithLikes) {
-                blog.isLiked = await LikeModal.exists({
-                    userid: loggedInUserId,
-                    blogid: blog._id,
-                });
-            }
 
             res.status(200).json({
                 success: true,

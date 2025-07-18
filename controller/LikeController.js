@@ -1,8 +1,11 @@
 import blogModel from "../models/Blogmodal.js";
 import LikeModal from "../models/Likemodal.js";
 
-async function fetchBlogsWithLikes(userid) {
-    const blogsWithLikes = await blogModel.aggregate([
+async function fetchSingleBlogWithLikes(userid, blogid) {
+    const blogWithLikes = await blogModel.aggregate([
+        {
+            $match: { _id: blogid },
+        },
         {
             $lookup: {
                 from: "likes",
@@ -18,14 +21,17 @@ async function fetchBlogsWithLikes(userid) {
         },
     ]);
 
-    for (const blog of blogsWithLikes) {
-        blog.isLiked = await LikeModal.exists({
-            userid,
-            blogid: blog._id,
-        });
+    if (blogWithLikes.length === 0) {
+        return null;
     }
 
-    return blogsWithLikes;
+    const blog = blogWithLikes[0];
+    blog.isLiked = await LikeModal.exists({
+        userid,
+        blogid: blog._id,
+    });
+
+    return blog;
 }
 
 class LikeController {
@@ -42,17 +48,17 @@ class LikeController {
             if (existingLike) {
                 // If like exists, remove it (dislike)
                 await LikeModal.findOneAndDelete({ userid, blogid });
-                const blogsWithLikes = await fetchBlogsWithLikes(userid);
+                const blog = await fetchSingleBlogWithLikes(userid, blogid);
 
-                return res.status(200).json({ success: true, data: blogsWithLikes, message: 'Blog disliked successfully.' });
+                return res.status(200).json({ success: true, data: blog, message: 'Blog disliked successfully.' });
             } else {
                 // If like doesn't exist, create a new like
                 const newLike = new LikeModal({ userid, blogid });
                 await newLike.save();
 
-                const blogsWithLikes = await fetchBlogsWithLikes(userid);
+                const blog = await fetchSingleBlogWithLikes(userid, blogid);
 
-                return res.status(200).json({ success: true, data: blogsWithLikes, message: 'Blog liked successfully.' });
+                return res.status(200).json({ success: true, data: blog, message: 'Blog liked successfully.' });
             }
         } catch (error) {
             console.error(error);

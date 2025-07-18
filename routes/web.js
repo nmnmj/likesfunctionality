@@ -3,6 +3,7 @@ import userController from '../controller/UserController.js'
 import checkUserAuth from '../middleware/authmiddleware.js'
 import BlogController from '../controller/BlogController.js'
 import LikeController from '../controller/LikeController.js'
+import passport from 'passport'
 
 const router = express.Router()
 
@@ -10,6 +11,13 @@ const router = express.Router()
 router.get("/", (req, res)=>res.status(200).json({success:true}))
 router.post("/register", userController.userRegisteration)
 router.post("/login", userController.userLogin)
+
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
+    // Successful authentication, redirect home.
+    res.redirect('/');
+});
 
 // protected user routes
 router.get("/all-blogs", checkUserAuth, BlogController.allBlogs)
