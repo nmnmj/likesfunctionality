@@ -13,6 +13,8 @@ app.use(cors())
 app.use(express.json())
 connectDB(process.env.DATABASE_URL)
 
+xyz
+
 app.use("/",web)
 
 app.listen(PORT, ()=>{
