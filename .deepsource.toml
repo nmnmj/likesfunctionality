@@ -6,7 +6,6 @@ enabled = true
 
   [analyzers.meta]
   environment = ["nodejs"]
-  coverage = { report_path = "coverage/lcov.info" }
 
 [transformations]
-  security = true
+security = true
