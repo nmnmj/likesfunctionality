@@ -2,9 +2,6 @@ version = 1
 
 [[analyzers]]
 name = "javascript"
-enabled = true
 
   [analyzers.meta]
   environment = ["nodejs"]
-  coverage = { report_path = "coverage/lcov.info" }
-  security = { enabled = true }
