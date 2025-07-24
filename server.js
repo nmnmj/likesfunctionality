@@ -12,7 +12,6 @@ const PORT = process.env.PORT || 8001
 app.use(cors())
 app.use(express.json())
 connectDB(process.env.DATABASE_URL)
-console.log("Trag"
 
 app.use("/",web)
 
