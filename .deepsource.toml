@@ -2,10 +2,10 @@ version = 1
 
 [[analyzers]]
 name = "javascript"
-enabled = true
 
   [analyzers.meta]
   environment = ["nodejs"]
 
-[transformations]
-security = true
+[[test_coverage]]
+tool = "javascript"
+paths = ["coverage/lcov.info"]
